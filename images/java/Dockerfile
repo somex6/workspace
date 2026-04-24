@@ -5,7 +5,7 @@ LABEL maintainer="platform-team" \
       org.opencontainers.image.title="golden/java-base" \
       org.opencontainers.image.description="CIS-hardened image" \
       org.opencontainers.image.version="${VERSION}" \
-      org.opencontainers.image.source="https://github.com/your-org/golden-images"
+      org.opencontainers.image.source="https://github.com/your-org/images"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         tini \
