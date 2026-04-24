@@ -10,7 +10,7 @@ on:
       - main 
     paths:
       - 'images/**'
-      - '.github/workflows/golden-images.yml'
+      - '.github/workflows/images.yml'
 
   workflow_dispatch:
     inputs:
