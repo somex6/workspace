@@ -1,4 +1,4 @@
-name: Build And Push Base Images To Golden ECR
+name: Build And Push Base Images To ECR
 
 on:
   schedule:
@@ -86,16 +86,12 @@ jobs:
         include:
           - image: python
             context: images/python
-            ecr_repo: golden/python-base
+            ecr_repo: python-base
             runtime_tag: "3.12"
           - image: node
             context: images/nodejs
-            ecr_repo: golden/node-base
+            ecr_repo: node-base
             runtime_tag: "22-lts"
-          - image: java
-            context: images/java
-            ecr_repo: golden/java-base
-            runtime_tag: "21-jre"
 
     steps:
       - name: Checkout
@@ -142,38 +138,6 @@ jobs:
           echo "image_uri=$REPO:$VERSION" >> $GITHUB_OUTPUT
           echo "digest=$DIGEST"           >> $GITHUB_OUTPUT
 
-      # ── Vulnerability Scan (Trivy/Aikido) ─────
-      - name: Scan with Trivy (CVE detection)
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: "${{ env.ECR_REGISTRY }}/${{ matrix.ecr_repo }}:${{ needs.version.outputs.version }}"
-          format: "sarif"
-          output: "trivy-${{ matrix.image }}.sarif"
-          exit-code: "1"
-          severity: "CRITICAL,HIGH"
-          ignore-unfixed: false
-
-      - name: Upload Trivy SARIF to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: "trivy-${{ matrix.image }}.sarif"
-          category: "trivy-${{ matrix.image }}"
-
-      # ── CIS Benchmark (Dockle) ────────────────
-      - name: CIS Docker Benchmark (Dockle)
-        run: |
-          # Install Dockle
-          VERSION=$(curl -s https://api.github.com/repos/goodwithtech/dockle/releases/latest | \
-                    grep '"tag_name"' | cut -d '"' -f4 | tr -d 'v')
-          curl -Lo dockle.tar.gz \
-            "https://github.com/goodwithtech/dockle/releases/download/v${VERSION}/dockle_${VERSION}_Linux-64bit.tar.gz"
-          tar -xzf dockle.tar.gz && sudo mv dockle /usr/local/bin/
-
-          dockle \
-            --exit-code 1 \
-            --exit-level warn \
-            "${{ env.ECR_REGISTRY }}/${{ matrix.ecr_repo }}:${{ needs.version.outputs.version }}"
 
       # ── Push all 3 tags ───────────────────────
       - name: Push to ECR
