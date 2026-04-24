@@ -1,11 +1,4 @@
-# syntax=docker/dockerfile:1
-# ============================================================
-# Golden Base Image: Node.js 22 LTS (CIS-Hardened)
-# ============================================================
-# IMPORTANT: Replace @sha256:PLACEHOLDER with a real digest:
-#   docker pull node:22-slim
-#   docker inspect --format='{{index .RepoDigests 0}}' node:22-slim
-# ============================================================
+
 FROM node:22-slim@sha256:PLACEHOLDER
 
 LABEL maintainer="platform-team" \
