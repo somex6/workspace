@@ -24,6 +24,10 @@ on:
           - minor
           - major
 
+env:
+  AWS_DEFAULT_REGION: us-east-1
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_DEFAULT_REGION }}.amazonaws.com
+  
 jobs:
   # ─────────────────────────────────────────────
   # JOB 1 — VERSION
@@ -92,6 +96,10 @@ jobs:
             context: images/nodejs
             ecr_repo: node-base
             runtime_tag: "22-lts"
+          - image: java   
+            context: images/java
+            ecr_repo: java-base
+            runtime_tag: "21-jre"
 
     steps:
       - name: Checkout
@@ -104,16 +112,12 @@ jobs:
           dockerfile: ${{ matrix.context }}/Dockerfile
           failure-threshold: warning
 
-      # ── AWS Auth (OIDC) ───────────────────────
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v1
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Login to Amazon ECR
-        id: ecr-login
-        uses: aws-actions/amazon-ecr-login@v2
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
 
       # ── Build (3 tags) ────────────────────────
       - name: Build Docker image
@@ -123,6 +127,10 @@ jobs:
           RUNTIME="${{ matrix.runtime_tag }}"
           REPO="${{ env.ECR_REGISTRY }}/${{ matrix.ecr_repo }}"
 
+          aws ecr get-login-password \
+            --region $(AWS_DEFAULT_REGION) | helm registry login \
+            --username AWS \
+            --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_DEFAULT_REGION).amazonaws.com
           docker build \
             --build-arg VERSION="$VERSION" \
             --label "org.opencontainers.image.created=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
