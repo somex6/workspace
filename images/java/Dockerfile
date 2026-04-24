@@ -1,15 +1,9 @@
-# ============================================================
-# Golden Base Image: Java 21 (Temurin JRE, CIS-Hardened)
-# ============================================================
-# IMPORTANT: Replace @sha256:PLACEHOLDER with a real digest:
-#   docker pull eclipse-temurin:21-jre-jammy
-#   docker inspect --format='{{index .RepoDigests 0}}' eclipse-temurin:21-jre-jammy
-# ============================================================
+
 FROM eclipse-temurin:21-jre-jammy@sha256:PLACEHOLDER
 
 LABEL maintainer="platform-team" \
       org.opencontainers.image.title="golden/java-base" \
-      org.opencontainers.image.description="CIS-hardened Java 21 Temurin JRE base image" \
+      org.opencontainers.image.description="CIS-hardened image" \
       org.opencontainers.image.version="${VERSION}" \
       org.opencontainers.image.source="https://github.com/your-org/golden-images"
 
