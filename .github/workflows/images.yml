@@ -145,6 +145,21 @@ jobs:
                    docker images --no-trunc --format '{{.ID}}' "$REPO:$VERSION")
           echo "image_uri=$REPO:$VERSION" >> $GITHUB_OUTPUT
           echo "digest=$DIGEST"           >> $GITHUB_OUTPUT
+          
+      # ── CIS Benchmark (Dockle) ────────────────
+      - name: CIS Docker Benchmark (Dockle)
+        run: |
+          # Install Dockle
+          VERSION=$(curl -s https://api.github.com/repos/goodwithtech/dockle/releases/latest | \
+                    grep '"tag_name"' | cut -d '"' -f4 | tr -d 'v')
+          curl -Lo dockle.tar.gz \
+            "https://github.com/goodwithtech/dockle/releases/download/v${VERSION}/dockle_${VERSION}_Linux-64bit.tar.gz"
+          tar -xzf dockle.tar.gz && sudo mv dockle /usr/local/bin/
+
+          dockle \
+            --exit-code 1 \
+            --exit-level warn \
+            "${{ env.ECR_REGISTRY }}/${{ matrix.ecr_repo }}:${{ needs.version.outputs.version }}"
 
 
       # ── Push all 3 tags ───────────────────────
