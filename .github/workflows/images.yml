@@ -172,3 +172,20 @@ jobs:
           docker push "$REPO:$VERSION"
           docker push "$REPO:$RUNTIME"
           docker push "$REPO:latest"
+          
+      # ── Cosign signing (AWS KMS) ──────────────
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign image with AWS KMS
+        env:
+          COSIGN_KMS_KEY: ${{ secrets.COSIGN_KMS_KEY_ARN }}
+        run: |
+          REPO="${{ env.ECR_REGISTRY }}/${{ matrix.ecr_repo }}"
+          VERSION="${{ needs.version.outputs.version }}"
+
+          # Sign by digest (immutable reference)
+          IMAGE_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "$REPO:$VERSION")
+          cosign sign --key "awskms:///${{ secrets.COSIGN_KMS_KEY_ARN }}" \
+            --yes \
+            "$IMAGE_DIGEST"
